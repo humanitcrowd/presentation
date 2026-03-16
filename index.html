@@ -13,27 +13,19 @@
     :root {
       --body-bg: #0d1117;
       --grey-1: #121317;
-      --glass: rgba(255,255,255,0.05);
-      --glass-border: rgba(255,255,255,0.10);
       --white: #FFFFFF;
       --grey-7: #D0D0D0;
       --grey-6: #8A9099;
       --grey-5: #6B7280;
-      --white-52: rgba(255,255,255,0.52);
       --accent: #28E6D0;
       --accent-grad: #27E6B8;
       --accent-text: #16BEAB;
       --accent-dim: rgba(40,230,208,0.12);
-      --danger: #FF6B6B;
-      --danger-dim: rgba(255,107,107,0.12);
       --warn: #FFC83C;
-      --warn-dim: rgba(255,200,60,0.12);
       --border-light: rgba(255,255,255,0.08);
-      --border-row: rgba(255,255,255,0.04);
       --radius: 16px;
       --radius-sm: 10px;
       --radius-pill: 100px;
-      --shadow-xl: 0 20px 60px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
       --ease: cubic-bezier(.4,0,.2,1);
     }
 
@@ -42,16 +34,17 @@
        ═══════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html { scroll-behavior: smooth; }
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
       font-size: 14px;
       background: var(--body-bg);
       color: var(--grey-7);
-      min-height: 100vh;
       -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
     }
 
     ::selection {
@@ -59,29 +52,7 @@
       color: var(--white);
     }
 
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.08);
-      border-radius: 3px;
-    }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
-
     a { color: inherit; text-decoration: none; }
-
-    /* ═══════════════════════════════════════
-       SCROLL PROGRESS BAR
-       ═══════════════════════════════════════ */
-    .scroll-progress {
-      position: fixed;
-      top: 0; left: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-grad));
-      z-index: 200;
-      width: 0%;
-      transition: width .1s linear;
-      box-shadow: 0 0 8px rgba(40,230,208,0.4);
-    }
 
     /* ═══════════════════════════════════════
        AMBIENT BACKGROUND
@@ -89,7 +60,7 @@
     .ambient {
       position: fixed;
       inset: 0;
-      z-index: -1;
+      z-index: 0;
       overflow: hidden;
       pointer-events: none;
     }
@@ -133,16 +104,44 @@
     }
 
     /* ═══════════════════════════════════════
-       SLIDE LAYOUT — desktop default
+       PAGE-BASED SLIDE ENGINE
        ═══════════════════════════════════════ */
+    .deck {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+
     .slide {
-      min-height: 100vh;
-      min-height: 100dvh;
+      position: absolute;
+      inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 80px 48px 60px;
-      position: relative;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .5s var(--ease), transform .5s var(--ease);
+      transform: translateX(60px);
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+      z-index: 2;
+    }
+
+    .slide.exiting-left {
+      opacity: 0;
+      transform: translateX(-60px);
+      z-index: 1;
+    }
+
+    .slide.exiting-right {
+      opacity: 0;
+      transform: translateX(60px);
+      z-index: 1;
     }
 
     .slide-inner {
@@ -151,61 +150,103 @@
     }
 
     /* ═══════════════════════════════════════
-       GLASS PANELS
+       PROGRESS BAR (top)
        ═══════════════════════════════════════ */
-    .glass {
-      position: relative;
-      background: rgba(255,255,255, 0.04);
-      backdrop-filter: blur(28px) saturate(1.4);
-      -webkit-backdrop-filter: blur(28px) saturate(1.4);
-      border: 1px solid rgba(255,255,255, 0.09);
-      border-radius: var(--radius);
-      box-shadow:
-        0 4px 24px rgba(0,0,0, 0.2),
-        inset 0 1px 0 rgba(255,255,255, 0.06);
-      transition: border-color .3s ease, box-shadow .3s ease;
-    }
-
-    .glass::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent 5%, rgba(255,255,255,.18) 50%, transparent 95%);
-      border-radius: var(--radius) var(--radius) 0 0;
-      pointer-events: none;
-    }
-
-    /* Shimmer on reveal */
-    .glass::after {
-      content: '';
-      position: absolute;
-      top: -1px; left: -1px; right: -1px; bottom: -1px;
-      border-radius: var(--radius);
-      background: linear-gradient(
-        135deg,
-        transparent 40%,
-        rgba(40,230,208,0.08) 50%,
-        transparent 60%
-      );
-      background-size: 300% 300%;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity .6s ease;
-    }
-
-    .glass.visible::after {
-      opacity: 1;
-      animation: shimmer 1.5s var(--ease) forwards;
-    }
-
-    @keyframes shimmer {
-      0%   { background-position: 100% 100%; }
-      100% { background-position: 0% 0%; opacity: 0; }
+    .progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-grad));
+      z-index: 200;
+      transition: width .4s var(--ease);
+      box-shadow: 0 0 12px rgba(40,230,208,0.4);
     }
 
     /* ═══════════════════════════════════════
-       TOPBAR / NAV — desktop default
+       PAGE INDICATOR (bottom)
+       ═══════════════════════════════════════ */
+    .page-indicator {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(255,255,255, 0.04);
+      backdrop-filter: blur(28px) saturate(1.4);
+      -webkit-backdrop-filter: blur(28px) saturate(1.4);
+      border: 1px solid rgba(255,255,255, 0.08);
+      border-radius: var(--radius-pill);
+    }
+
+    .page-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255, 0.15);
+      cursor: pointer;
+      transition: all .25s var(--ease);
+      border: none;
+      padding: 0;
+    }
+
+    .page-dot:hover {
+      background: rgba(255,255,255, 0.3);
+    }
+
+    .page-dot.active {
+      background: var(--accent);
+      width: 24px;
+      border-radius: 4px;
+      box-shadow: 0 0 8px rgba(40,230,208,0.3);
+    }
+
+    /* ═══════════════════════════════════════
+       NAV ARROWS
+       ═══════════════════════════════════════ */
+    .nav-arrow {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 100;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255, 0.05);
+      border: 1px solid rgba(255,255,255, 0.08);
+      color: var(--grey-6);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s var(--ease);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .nav-arrow:hover {
+      background: rgba(255,255,255, 0.1);
+      border-color: rgba(255,255,255, 0.15);
+      color: var(--white);
+    }
+
+    .nav-arrow:active { transform: translateY(-50%) scale(0.95); }
+
+    .nav-arrow.disabled {
+      opacity: 0.2;
+      pointer-events: none;
+    }
+
+    .nav-arrow svg { width: 18px; height: 18px; }
+
+    .nav-prev { left: 20px; }
+    .nav-next { right: 20px; }
+
+    /* ═══════════════════════════════════════
+       TOPBAR
        ═══════════════════════════════════════ */
     .topbar {
       padding: 14px 24px;
@@ -252,6 +293,7 @@
       border-radius: var(--radius-sm);
       transition: all .2s var(--ease);
       white-space: nowrap;
+      cursor: pointer;
     }
 
     .topbar-nav a:hover {
@@ -264,7 +306,7 @@
       background: var(--accent-dim);
     }
 
-    /* Mobile hamburger — hidden on desktop */
+    /* Mobile hamburger */
     .mobile-menu-btn {
       display: none;
       background: none;
@@ -280,7 +322,7 @@
     .mobile-menu-btn:hover { color: var(--white); }
     .mobile-menu-btn svg { display: block; width: 20px; height: 20px; }
 
-    /* Mobile nav drawer — hidden on desktop */
+    /* Mobile nav drawer */
     .mobile-nav-overlay {
       display: none;
       position: fixed;
@@ -325,6 +367,7 @@
       border-radius: var(--radius-sm);
       transition: all .15s ease;
       -webkit-tap-highlight-color: transparent;
+      cursor: pointer;
     }
 
     .mobile-nav a:hover,
@@ -348,7 +391,6 @@
       padding: 8px;
       border-radius: 8px;
       transition: all .15s ease;
-      -webkit-tap-highlight-color: transparent;
     }
 
     .mobile-nav-close:hover {
@@ -359,34 +401,121 @@
     .mobile-nav-close svg { display: block; width: 20px; height: 20px; }
 
     /* ═══════════════════════════════════════
-       TYPOGRAPHY
+       GLASS PANELS
        ═══════════════════════════════════════ */
-    .heading-xl {
-      font-size: 56px;
-      font-weight: 700;
-      color: var(--white);
-      letter-spacing: -1px;
-      line-height: 1.1;
+    .glass {
+      position: relative;
+      background: rgba(255,255,255, 0.04);
+      backdrop-filter: blur(28px) saturate(1.4);
+      -webkit-backdrop-filter: blur(28px) saturate(1.4);
+      border: 1px solid rgba(255,255,255, 0.09);
+      border-radius: var(--radius);
+      box-shadow:
+        0 4px 24px rgba(0,0,0, 0.2),
+        inset 0 1px 0 rgba(255,255,255, 0.06);
     }
 
-    .text-secondary {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--grey-6);
-      line-height: 1.6;
+    .glass::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 5%, rgba(255,255,255,.18) 50%, transparent 95%);
+      border-radius: var(--radius) var(--radius) 0 0;
+      pointer-events: none;
+    }
+
+    /* Shimmer */
+    .glass::after {
+      content: '';
+      position: absolute;
+      top: -1px; left: -1px; right: -1px; bottom: -1px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, transparent 40%, rgba(40,230,208,0.08) 50%, transparent 60%);
+      background-size: 300% 300%;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .slide.active .glass::after {
+      opacity: 1;
+      animation: shimmer 1.5s var(--ease) .3s forwards;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 100% 100%; }
+      100% { background-position: 0% 0%; opacity: 0; }
+    }
+
+    /* ═══════════════════════════════════════
+       SLIDE CONTENT
+       ═══════════════════════════════════════ */
+    .slide-card {
+      padding: 48px;
+    }
+
+    .slide-card .slide-number {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent-text);
+      background: var(--accent-dim);
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 20px;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity .3s var(--ease) .15s, transform .3s var(--ease) .15s;
+    }
+
+    .slide.active .slide-number {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .slide-card .slide-title-text {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.5px;
+      margin-bottom: 28px;
+      line-height: 1.2;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity .5s var(--ease) .2s, transform .5s var(--ease) .2s;
+    }
+
+    .slide.active .slide-title-text {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .slide-card p {
+      font-size: 14px;
+      color: var(--grey-7);
+      line-height: 1.75;
+      margin-bottom: 16px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity .5s var(--ease), transform .5s var(--ease);
+    }
+
+    .slide-card p:last-child { margin-bottom: 0; }
+
+    .slide.active .slide-card p:nth-of-type(1) {
+      opacity: 1; transform: translateY(0); transition-delay: .3s;
+    }
+    .slide.active .slide-card p:nth-of-type(2) {
+      opacity: 1; transform: translateY(0); transition-delay: .45s;
     }
 
     .accent { color: var(--accent-text); }
-    .warn-text { color: var(--warn); }
 
     /* ═══════════════════════════════════════
        SLIDE 1 — TITLE
        ═══════════════════════════════════════ */
-    .slide-title {
-      text-align: center;
-      flex-direction: column;
-    }
-
     .slide-title .slide-inner { text-align: center; }
 
     .logo-container {
@@ -400,8 +529,11 @@
       justify-content: center;
       margin: 0 auto 40px;
       overflow: hidden;
-      animation: logoFloat 6s ease-in-out infinite;
       transition: border-color .3s ease;
+    }
+
+    .slide.active .logo-container {
+      animation: logoFloat 6s ease-in-out infinite;
     }
 
     .logo-container:hover { border-color: rgba(40,230,208, 0.2); }
@@ -429,6 +561,22 @@
       margin-bottom: 16px;
       position: relative;
       display: inline-block;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity .6s var(--ease) .15s, transform .6s var(--ease) .15s;
+    }
+
+    .slide.active .title-heading {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .heading-xl {
+      font-size: 56px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -1px;
+      line-height: 1.1;
     }
 
     .title-glow {
@@ -451,88 +599,55 @@
       font-size: 15px;
       color: var(--grey-6);
       font-weight: 500;
+      opacity: 0;
+      transition: opacity .5s var(--ease) .35s;
     }
+
+    .slide.active .subtitle { opacity: 1; }
 
     .subtitle .dot {
       display: inline-block;
       color: var(--accent);
     }
 
-    /* Scroll hint */
-    .scroll-hint {
-      position: absolute;
-      bottom: 32px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      animation: fadeIn .8s var(--ease) 1.2s both;
+    .start-hint {
+      margin-top: 48px;
+      opacity: 0;
+      transition: opacity .5s var(--ease) .6s;
     }
 
-    .scroll-hint span {
-      font-size: 10px;
-      font-weight: 600;
+    .slide.active .start-hint { opacity: 1; }
+
+    .start-hint span {
+      font-size: 11px;
+      font-weight: 500;
       color: var(--grey-5);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.05em;
     }
 
-    .scroll-arrow {
-      width: 20px;
-      height: 20px;
-      border-right: 2px solid var(--grey-5);
-      border-bottom: 2px solid var(--grey-5);
-      transform: rotate(45deg);
-      animation: scrollBounce 2s var(--ease) infinite;
+    .start-hint .arrow-keys {
+      display: inline-flex;
+      gap: 4px;
+      margin-left: 8px;
+      vertical-align: middle;
     }
 
-    @keyframes scrollBounce {
-      0%, 100% { transform: rotate(45deg) translate(0, 0); opacity: 0.5; }
-      50% { transform: rotate(45deg) translate(4px, 4px); opacity: 1; }
-    }
-
-    /* ═══════════════════════════════════════
-       CONTENT SLIDE CARDS — desktop default
-       ═══════════════════════════════════════ */
-    .slide-card {
-      padding: 48px;
-    }
-
-    .slide-card .slide-number {
-      display: inline-block;
+    .start-hint kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
       font-size: 10px;
-      font-weight: 600;
-      color: var(--accent-text);
-      background: var(--accent-dim);
-      padding: 4px 12px;
-      border-radius: var(--radius-pill);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-bottom: 20px;
+      color: var(--grey-6);
+      font-family: inherit;
     }
-
-    .slide-card .slide-title-text {
-      font-size: 36px;
-      font-weight: 700;
-      color: var(--white);
-      letter-spacing: -0.5px;
-      margin-bottom: 28px;
-      line-height: 1.2;
-    }
-
-    .slide-card p {
-      font-size: 14px;
-      color: var(--grey-7);
-      line-height: 1.75;
-      margin-bottom: 16px;
-    }
-
-    .slide-card p:last-child { margin-bottom: 0; }
 
     /* ═══════════════════════════════════════
-       BULLET LIST — with stagger micro-animations
+       BULLET LIST
        ═══════════════════════════════════════ */
     .bullet-list {
       list-style: none;
@@ -554,15 +669,15 @@
       transition: opacity .5s var(--ease), transform .5s var(--ease);
     }
 
-    .visible .bullet-list li {
+    .slide.active .bullet-list li {
       opacity: 1;
       transform: translateX(0);
     }
 
-    .visible .bullet-list li:nth-child(1) { transition-delay: .15s; }
-    .visible .bullet-list li:nth-child(2) { transition-delay: .25s; }
-    .visible .bullet-list li:nth-child(3) { transition-delay: .35s; }
-    .visible .bullet-list li:nth-child(4) { transition-delay: .45s; }
+    .slide.active .bullet-list li:nth-child(1) { transition-delay: .2s; }
+    .slide.active .bullet-list li:nth-child(2) { transition-delay: .3s; }
+    .slide.active .bullet-list li:nth-child(3) { transition-delay: .4s; }
+    .slide.active .bullet-list li:nth-child(4) { transition-delay: .5s; }
 
     .bullet-dot {
       flex-shrink: 0;
@@ -592,7 +707,7 @@
     .bullet-dot.warn::after { background: rgba(255,200,60, 0.2); }
 
     /* ═══════════════════════════════════════
-       STEP LIST — numbered with connecting line
+       STEP LIST
        ═══════════════════════════════════════ */
     .step-list {
       list-style: none;
@@ -627,15 +742,15 @@
       transition: opacity .5s var(--ease), transform .5s var(--ease);
     }
 
-    .visible .step-list li {
+    .slide.active .step-list li {
       opacity: 1;
       transform: translateY(0);
     }
 
-    .visible .step-list li:nth-child(1) { transition-delay: .15s; }
-    .visible .step-list li:nth-child(2) { transition-delay: .30s; }
-    .visible .step-list li:nth-child(3) { transition-delay: .45s; }
-    .visible .step-list li:nth-child(4) { transition-delay: .60s; }
+    .slide.active .step-list li:nth-child(1) { transition-delay: .2s; }
+    .slide.active .step-list li:nth-child(2) { transition-delay: .35s; }
+    .slide.active .step-list li:nth-child(3) { transition-delay: .5s; }
+    .slide.active .step-list li:nth-child(4) { transition-delay: .65s; }
 
     .step-num {
       flex-shrink: 0;
@@ -661,7 +776,7 @@
     }
 
     /* ═══════════════════════════════════════
-       SERVICE GRID — What We Do (linked tiles)
+       SERVICE GRID
        ═══════════════════════════════════════ */
     .service-grid {
       display: grid;
@@ -674,10 +789,12 @@
       background: rgba(255,255,255, 0.03);
       border: 1px solid rgba(255,255,255, 0.06);
       border-radius: 14px;
-      padding: 28px 20px;
+      padding: 28px 20px 22px;
       text-align: center;
       cursor: pointer;
-      display: block;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-decoration: none;
       overflow: hidden;
       opacity: 0;
@@ -687,17 +804,17 @@
                   box-shadow .25s var(--ease);
     }
 
-    .visible .service-tile {
+    .slide.active .service-tile {
       opacity: 1;
       transform: scale(1);
     }
 
-    .visible .service-tile:nth-child(1) { transition-delay: .10s; }
-    .visible .service-tile:nth-child(2) { transition-delay: .16s; }
-    .visible .service-tile:nth-child(3) { transition-delay: .22s; }
-    .visible .service-tile:nth-child(4) { transition-delay: .28s; }
-    .visible .service-tile:nth-child(5) { transition-delay: .34s; }
-    .visible .service-tile:nth-child(6) { transition-delay: .40s; }
+    .slide.active .service-tile:nth-child(1) { transition-delay: .15s; }
+    .slide.active .service-tile:nth-child(2) { transition-delay: .22s; }
+    .slide.active .service-tile:nth-child(3) { transition-delay: .29s; }
+    .slide.active .service-tile:nth-child(4) { transition-delay: .36s; }
+    .slide.active .service-tile:nth-child(5) { transition-delay: .43s; }
+    .slide.active .service-tile:nth-child(6) { transition-delay: .50s; }
 
     .service-tile::before {
       content: '';
@@ -727,9 +844,7 @@
       box-shadow: 0 8px 24px rgba(0,0,0, 0.2), 0 0 0 1px rgba(40,230,208, 0.08);
     }
 
-    .service-tile:active {
-      transform: translateY(-1px) scale(0.98);
-    }
+    .service-tile:active { transform: translateY(-1px) scale(0.98); }
 
     .service-icon {
       font-size: 28px;
@@ -739,6 +854,27 @@
     }
 
     .service-tile:hover .service-icon { transform: scale(1.15); }
+
+    /* Brand logo inside tile */
+    .service-logo {
+      height: 32px;
+      width: auto;
+      max-width: 120px;
+      object-fit: contain;
+      margin-bottom: 10px;
+      opacity: 0.85;
+      transition: opacity .2s ease;
+    }
+
+    .service-tile:hover .service-logo { opacity: 1; }
+
+    /* Invert logos with dark/black backgrounds for our dark UI */
+    .service-logo.invert {
+      filter: brightness(0) invert(1);
+      opacity: 0.7;
+    }
+
+    .service-tile:hover .service-logo.invert { opacity: 0.9; }
 
     .service-name {
       font-size: 13px;
@@ -751,17 +887,17 @@
 
     .service-tile:hover .service-name { color: var(--accent); }
 
-    .service-arrow {
+    .service-url {
       display: block;
-      margin-top: 10px;
-      font-size: 11px;
+      margin-top: 6px;
+      font-size: 10px;
       color: var(--grey-5);
       transition: all .2s var(--ease);
       opacity: 0;
       transform: translateY(4px);
     }
 
-    .service-tile:hover .service-arrow {
+    .service-tile:hover .service-url {
       opacity: 1;
       transform: translateY(0);
       color: var(--accent-text);
@@ -793,17 +929,17 @@
       transform: translateY(8px);
     }
 
-    .visible .work-placeholder {
+    .slide.active .work-placeholder {
       opacity: 1;
       transform: translateY(0);
     }
 
-    .visible .work-placeholder:nth-child(1) { transition-delay: .10s; }
-    .visible .work-placeholder:nth-child(2) { transition-delay: .16s; }
-    .visible .work-placeholder:nth-child(3) { transition-delay: .22s; }
-    .visible .work-placeholder:nth-child(4) { transition-delay: .28s; }
-    .visible .work-placeholder:nth-child(5) { transition-delay: .34s; }
-    .visible .work-placeholder:nth-child(6) { transition-delay: .40s; }
+    .slide.active .work-placeholder:nth-child(1) { transition-delay: .15s; }
+    .slide.active .work-placeholder:nth-child(2) { transition-delay: .22s; }
+    .slide.active .work-placeholder:nth-child(3) { transition-delay: .29s; }
+    .slide.active .work-placeholder:nth-child(4) { transition-delay: .36s; }
+    .slide.active .work-placeholder:nth-child(5) { transition-delay: .43s; }
+    .slide.active .work-placeholder:nth-child(6) { transition-delay: .50s; }
 
     .work-placeholder:hover {
       border-color: rgba(255,255,255, 0.14);
@@ -814,75 +950,9 @@
     /* ═══════════════════════════════════════
        ANIMATIONS
        ═══════════════════════════════════════ */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(24px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
     @keyframes fadeIn {
       from { opacity: 0; }
       to   { opacity: 1; }
-    }
-
-    .anim-up { animation: fadeInUp .6s var(--ease) both; }
-    .d1  { animation-delay: .06s }
-    .d2  { animation-delay: .12s }
-    .d3  { animation-delay: .18s }
-    .d4  { animation-delay: .24s }
-    .d5  { animation-delay: .30s }
-    .d6  { animation-delay: .36s }
-
-    /* Scroll-triggered reveal */
-    .reveal {
-      opacity: 0;
-      transform: translateY(32px);
-      transition: opacity .7s var(--ease), transform .7s var(--ease);
-    }
-
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* Slide number micro-animation */
-    .slide-number {
-      opacity: 0;
-      transform: scale(0.8);
-      transition: opacity .3s var(--ease), transform .3s var(--ease);
-    }
-
-    .visible .slide-number {
-      opacity: 1;
-      transform: scale(1);
-      transition-delay: .1s;
-    }
-
-    /* Title text reveal */
-    .slide-title-text {
-      opacity: 0;
-      transform: translateY(12px);
-      transition: opacity .5s var(--ease), transform .5s var(--ease);
-    }
-
-    .visible .slide-title-text {
-      opacity: 1;
-      transform: translateY(0);
-      transition-delay: .2s;
-    }
-
-    /* Paragraph stagger */
-    .slide-card p {
-      opacity: 0;
-      transform: translateY(8px);
-      transition: opacity .5s var(--ease), transform .5s var(--ease);
-    }
-
-    .visible .slide-card p:nth-of-type(1) {
-      opacity: 1; transform: translateY(0); transition-delay: .3s;
-    }
-
-    .visible .slide-card p:nth-of-type(2) {
-      opacity: 1; transform: translateY(0); transition-delay: .45s;
     }
 
     /* ═══════════════════════════════════════
@@ -891,23 +961,21 @@
 
     /* Tablet */
     @media (max-width: 768px) {
-      .slide { padding: 80px 32px 48px; }
+      .slide { padding: 70px 32px 80px; }
       .slide-card { padding: 36px; }
-
       .heading-xl { font-size: 42px; }
       .slide-card .slide-title-text { font-size: 28px; }
-
       .topbar-nav a { padding: 6px 8px; font-size: 10px; }
-
-      .service-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-      .service-tile { padding: 22px 16px; }
-      .service-icon { font-size: 24px; }
+      .service-grid { gap: 10px; }
+      .service-tile { padding: 22px 16px 18px; }
+      .service-logo { height: 26px; }
       .service-name { font-size: 12px; }
-
       .logo-container { width: 150px; height: 150px; }
+      .nav-arrow { width: 36px; height: 36px; }
+      .nav-arrow svg { width: 14px; height: 14px; }
     }
 
-    /* Small tablet / large phone */
+    /* Phone */
     @media (max-width: 640px) {
       .topbar { padding: 12px 16px; }
       .topbar-nav { display: none; }
@@ -915,21 +983,8 @@
       .mobile-nav-overlay { display: block; }
       .mobile-nav { display: flex; }
 
-      .slide { padding: 72px 20px 36px; }
-
-      .slide:not(.slide-title) {
-        min-height: auto;
-        padding-top: 40px;
-        padding-bottom: 40px;
-      }
-
-      .slide-title {
-        min-height: 100vh;
-        min-height: 100dvh;
-      }
-
+      .slide { padding: 64px 20px 90px; }
       .slide-card { padding: 28px 24px; }
-
       .heading-xl { font-size: 36px; }
       .slide-card .slide-title-text { font-size: 24px; }
       .slide-card p { font-size: 13px; }
@@ -937,36 +992,39 @@
       .step-list li { font-size: 13px; }
 
       .service-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .service-tile { padding: 20px 14px 16px; }
+      .service-logo { height: 22px; }
       .work-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
 
       .logo-container { width: 130px; height: 130px; margin-bottom: 28px; }
       .subtitle { font-size: 13px; }
-      .scroll-hint { bottom: 20px; }
+
+      .nav-arrow { width: 34px; height: 34px; }
+      .nav-prev { left: 8px; }
+      .nav-next { right: 8px; }
+
+      .page-indicator { bottom: 16px; padding: 6px 12px; gap: 6px; }
+      .page-dot { width: 6px; height: 6px; }
+      .page-dot.active { width: 18px; }
+
+      .start-hint { display: none; }
     }
 
     /* Small phones */
     @media (max-width: 380px) {
-      .slide { padding: 64px 16px 28px; }
+      .slide { padding: 60px 16px 85px; }
       .slide-card { padding: 22px 18px; }
-
       .heading-xl { font-size: 30px; }
       .slide-card .slide-title-text { font-size: 22px; }
-
-      .service-grid { gap: 8px; }
-      .service-tile { padding: 18px 12px; }
-      .service-icon { font-size: 22px; }
-
+      .service-tile { padding: 16px 10px 14px; }
+      .service-logo { height: 18px; }
       .logo-container { width: 110px; height: 110px; }
-
       .mobile-nav { width: 80vw; }
-
       .step-num { width: 24px; height: 24px; font-size: 11px; }
       .step-list::before { left: 11px; }
     }
 
-    /* ═══════════════════════════════════════
-       TOUCH DEVICES — disable hover lifts
-       ═══════════════════════════════════════ */
+    /* Touch */
     @media (hover: none) {
       .service-tile:hover {
         transform: none;
@@ -974,51 +1032,38 @@
         background: rgba(255,255,255, 0.03);
         box-shadow: none;
       }
-
       .service-tile:active {
         border-color: rgba(40,230,208, 0.25);
         background: rgba(40,230,208, 0.04);
         transform: scale(0.98);
       }
-
       .work-placeholder:hover { transform: none; }
+      .nav-arrow { width: 40px; height: 40px; }
     }
 
-    /* ═══════════════════════════════════════
-       REDUCED MOTION
-       ═══════════════════════════════════════ */
+    /* Reduced motion */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
+        transition-duration: 0.1ms !important;
       }
-
-      .reveal,
-      .reveal .bullet-list li,
-      .reveal .step-list li,
-      .reveal .service-tile,
-      .reveal .work-placeholder,
-      .reveal .slide-number,
-      .reveal .slide-title-text,
-      .reveal p {
-        opacity: 1 !important;
-        transform: none !important;
-      }
+      .slide { transition: none; }
+      .slide.active * { opacity: 1 !important; transform: none !important; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Scroll progress indicator -->
-  <div class="scroll-progress" id="scrollProgress"></div>
-
-  <!-- Ambient floating orbs -->
+  <!-- Ambient orbs -->
   <div class="ambient">
     <div class="ambient-orb"></div>
     <div class="ambient-orb"></div>
     <div class="ambient-orb"></div>
   </div>
+
+  <!-- Progress bar -->
+  <div class="progress-bar" id="progressBar" style="width: 0%"></div>
 
   <!-- ════════════════════════════════════
        TOPBAR
@@ -1029,15 +1074,15 @@
            onerror="this.style.display='none'">
       Human Worldwide
     </div>
-    <ul class="topbar-nav">
-      <li><a href="#title" class="active">Home</a></li>
-      <li><a href="#who-we-are">Who We Are</a></li>
-      <li><a href="#what-we-do">What We Do</a></li>
-      <li><a href="#our-work">Our Work</a></li>
-      <li><a href="#music-brief">Brief</a></li>
-      <li><a href="#revisions">Revisions</a></li>
-      <li><a href="#musicology">Musicology</a></li>
-      <li><a href="#file-mgmt">Files</a></li>
+    <ul class="topbar-nav" id="topNav">
+      <li><a data-slide="0" class="active">Home</a></li>
+      <li><a data-slide="1">Who We Are</a></li>
+      <li><a data-slide="2">What We Do</a></li>
+      <li><a data-slide="3">Our Work</a></li>
+      <li><a data-slide="4">Brief</a></li>
+      <li><a data-slide="5">Revisions</a></li>
+      <li><a data-slide="6">Musicology</a></li>
+      <li><a data-slide="7">Files</a></li>
     </ul>
     <button class="mobile-menu-btn" id="menuBtn" aria-label="Open menu">
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
@@ -1054,308 +1099,392 @@
         <line x1="4" y1="4" x2="16" y2="16"/><line x1="16" y1="4" x2="4" y2="16"/>
       </svg>
     </button>
-    <a href="#title">Home</a>
-    <a href="#who-we-are">Who We Are</a>
-    <a href="#what-we-do">What We Do</a>
-    <a href="#our-work">Our Work</a>
-    <a href="#music-brief">Brief</a>
-    <a href="#revisions">Revisions</a>
-    <a href="#musicology">Musicology</a>
-    <a href="#file-mgmt">Files</a>
+    <a data-slide="0">Home</a>
+    <a data-slide="1">Who We Are</a>
+    <a data-slide="2">What We Do</a>
+    <a data-slide="3">Our Work</a>
+    <a data-slide="4">Brief</a>
+    <a data-slide="5">Revisions</a>
+    <a data-slide="6">Musicology</a>
+    <a data-slide="7">Files</a>
   </nav>
 
-  <!-- ════════════════════════════════════
-       SLIDE 1 — TITLE
-       ════════════════════════════════════ -->
-  <section class="slide slide-title" id="title">
-    <div class="slide-inner">
-      <div class="logo-container anim-up">
-        <img src="branding/logo.png" alt="Human Worldwide Logo"
-             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-        <span class="logo-fallback" style="display:none;">Drop logo in<br>branding/</span>
-      </div>
-      <div class="title-heading anim-up d2">
-        <div class="title-glow"></div>
-        <h1 class="heading-xl">Human Worldwide</h1>
-      </div>
-      <p class="subtitle anim-up d4">Music <span class="dot">&middot;</span> Sound <span class="dot">&middot;</span> Story</p>
-    </div>
-    <div class="scroll-hint">
-      <span>Scroll</span>
-      <div class="scroll-arrow"></div>
-    </div>
-  </section>
+  <!-- Nav arrows -->
+  <button class="nav-arrow nav-prev disabled" id="prevBtn" aria-label="Previous slide">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="12,4 6,10 12,16"/>
+    </svg>
+  </button>
+  <button class="nav-arrow nav-next" id="nextBtn" aria-label="Next slide">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="8,4 14,10 8,16"/>
+    </svg>
+  </button>
+
+  <!-- Page indicator dots -->
+  <div class="page-indicator" id="pageIndicator"></div>
 
   <!-- ════════════════════════════════════
-       SLIDE 2 — WHO WE ARE
+       SLIDES
        ════════════════════════════════════ -->
-  <section class="slide" id="who-we-are">
-    <div class="slide-inner">
-      <div class="glass slide-card reveal">
-        <span class="slide-number">01</span>
-        <h2 class="slide-title-text">Who We Are</h2>
-        <p>
-          Founded by composers in service of the world's biggest brands, Human has always championed music's ability to inspire and provoke emotion. Human has crafted soundtracks for stories told across advertising, broadcast, film, and digital media, with services ranging from composition to sound design, and from supervision to audio post with our newly minted sister company, <span class="accent">Post Human</span>.
-        </p>
-        <p>
-          Human hosts offices in <span class="accent">New York</span>, <span class="accent">Los Angeles</span>, <span class="accent">Chicago</span> and <span class="accent">Paris</span>, providing the facilities, bandwidth, and flexibility to serve as the ideal music and audio partner for clients and collaborators. Our artistic approach is reflected in everything we do, embracing the intertwining of tangible and intangible qualities that make music a powerful tool in transformative commercial and experiential storytelling.
-        </p>
-      </div>
-    </div>
-  </section>
+  <div class="deck" id="deck">
 
-  <!-- ════════════════════════════════════
-       SLIDE 3 — WHAT WE DO
-       ════════════════════════════════════ -->
-  <section class="slide" id="what-we-do">
-    <div class="slide-inner">
-      <div class="glass slide-card reveal">
-        <span class="slide-number">02</span>
-        <h2 class="slide-title-text">What We Do</h2>
-        <div class="service-grid">
-
-          <a class="service-tile" href="#original-music">
-            <div class="tile-glow"></div>
-            <span class="service-icon">&#9835;</span>
-            <span class="service-name">Original Music</span>
-            <span class="service-arrow">&rarr;</span>
-          </a>
-
-          <a class="service-tile" href="#music-supervision">
-            <div class="tile-glow"></div>
-            <span class="service-icon">&#9834;</span>
-            <span class="service-name">Music Supervision</span>
-            <span class="service-arrow">&rarr;</span>
-          </a>
-
-          <a class="service-tile" href="#post-human">
-            <div class="tile-glow"></div>
-            <span class="service-icon">&#127908;</span>
-            <span class="service-name">Post Human</span>
-            <span class="service-arrow">&rarr;</span>
-          </a>
-
-          <a class="service-tile" href="#sonic-branding">
-            <div class="tile-glow"></div>
-            <span class="service-icon">&#128266;</span>
-            <span class="service-name">Sonic Branding</span>
-            <span class="service-arrow">&rarr;</span>
-          </a>
-
-          <a class="service-tile" href="#librarian">
-            <div class="tile-glow"></div>
-            <span class="service-icon">&#128218;</span>
-            <span class="service-name">Librarian</span>
-            <span class="service-arrow">&rarr;</span>
-          </a>
-
-          <a class="service-tile" href="#human-label">
-            <div class="tile-glow"></div>
-            <span class="service-icon">&#127926;</span>
-            <span class="service-name">Human Label</span>
-            <span class="service-arrow">&rarr;</span>
-          </a>
-
+    <!-- SLIDE 0 — TITLE -->
+    <section class="slide slide-title active" data-index="0">
+      <div class="slide-inner">
+        <div class="logo-container">
+          <img src="branding/logo.png" alt="Human Worldwide Logo"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+          <span class="logo-fallback" style="display:none;">Drop logo in<br>branding/</span>
+        </div>
+        <div class="title-heading">
+          <div class="title-glow"></div>
+          <h1 class="heading-xl">Human Worldwide</h1>
+        </div>
+        <p class="subtitle">Music <span class="dot">&middot;</span> Sound <span class="dot">&middot;</span> Story</p>
+        <div class="start-hint">
+          <span>Use arrow keys or click to navigate</span>
+          <span class="arrow-keys">
+            <kbd>&larr;</kbd><kbd>&rarr;</kbd>
+          </span>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ════════════════════════════════════
-       SLIDE 4 — OUR WORK
-       ════════════════════════════════════ -->
-  <section class="slide" id="our-work">
-    <div class="slide-inner">
-      <div class="glass slide-card reveal">
-        <span class="slide-number">03</span>
-        <h2 class="slide-title-text">Our Work</h2>
-        <p class="text-secondary" style="margin-bottom: 8px;">A selection of projects across advertising, film, and digital media.</p>
-        <div class="work-grid">
-          <div class="work-placeholder">Project 1</div>
-          <div class="work-placeholder">Project 2</div>
-          <div class="work-placeholder">Project 3</div>
-          <div class="work-placeholder">Project 4</div>
-          <div class="work-placeholder">Project 5</div>
-          <div class="work-placeholder">Project 6</div>
+    <!-- SLIDE 1 — WHO WE ARE -->
+    <section class="slide" data-index="1">
+      <div class="slide-inner">
+        <div class="glass slide-card">
+          <span class="slide-number">01</span>
+          <h2 class="slide-title-text">Who We Are</h2>
+          <p>
+            Founded by composers in service of the world's biggest brands, Human has always championed music's ability to inspire and provoke emotion. Human has crafted soundtracks for stories told across advertising, broadcast, film, and digital media, with services ranging from composition to sound design, and from supervision to audio post with our newly minted sister company, <span class="accent">Post Human</span>.
+          </p>
+          <p>
+            Human hosts offices in <span class="accent">New York</span>, <span class="accent">Los Angeles</span>, <span class="accent">Chicago</span> and <span class="accent">Paris</span>, providing the facilities, bandwidth, and flexibility to serve as the ideal music and audio partner for clients and collaborators. Our artistic approach is reflected in everything we do, embracing the intertwining of tangible and intangible qualities that make music a powerful tool in transformative commercial and experiential storytelling.
+          </p>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ════════════════════════════════════
-       SLIDE 5 — A MUSIC BRIEF
-       ════════════════════════════════════ -->
-  <section class="slide" id="music-brief">
-    <div class="slide-inner">
-      <div class="glass slide-card reveal">
-        <span class="slide-number">04</span>
-        <h2 class="slide-title-text">A Music Brief &mdash; Start to Finish</h2>
-        <ol class="step-list">
-          <li>
-            <span class="step-num">1</span>
-            <div>
-              <strong style="color:var(--white)">Initial Ideas</strong><br>
-              Needledrops, library tracks &mdash; establishing the sonic direction and reference points.
-            </div>
-          </li>
-          <li>
-            <span class="step-num">2</span>
-            <div>
-              <strong style="color:var(--white)">A Fully Fleshed Brief</strong><br>
-              Translating creative vision into a detailed music brief that guides composition.
-            </div>
-          </li>
-          <li>
-            <span class="step-num">3</span>
-            <div>
-              <strong style="color:var(--white)">Feedback Loop</strong><br>
-              Collaborative back-and-forth between composer, agency, and client.
-            </div>
-          </li>
-          <li>
-            <span class="step-num">4</span>
-            <div>
-              <strong style="color:var(--white)">Rd 2, Rd 3..?</strong><br>
-              Iterating through rounds until the music lands exactly where it needs to be.
-            </div>
-          </li>
-        </ol>
+    <!-- SLIDE 2 — WHAT WE DO -->
+    <section class="slide" data-index="2">
+      <div class="slide-inner">
+        <div class="glass slide-card">
+          <span class="slide-number">02</span>
+          <h2 class="slide-title-text">What We Do</h2>
+          <div class="service-grid">
+
+            <a class="service-tile" href="https://www.humanworldwide.com/" target="_blank" rel="noopener">
+              <div class="tile-glow"></div>
+              <span class="service-icon">&#9835;</span>
+              <span class="service-name">Original Music</span>
+              <span class="service-url">humanworldwide.com &nearr;</span>
+            </a>
+
+            <a class="service-tile" href="https://www.humanworldwide.com/supervision/" target="_blank" rel="noopener">
+              <div class="tile-glow"></div>
+              <span class="service-icon">&#9834;</span>
+              <span class="service-name">Music Supervision</span>
+              <span class="service-url">humanworldwide.com &nearr;</span>
+            </a>
+
+            <a class="service-tile" href="https://www.humanworldwide.com/post-human/" target="_blank" rel="noopener">
+              <div class="tile-glow"></div>
+              <img class="service-logo" src="branding/posthuman.png" alt="Post Human">
+              <span class="service-name">Post Human</span>
+              <span class="service-url">humanworldwide.com &nearr;</span>
+            </a>
+
+            <a class="service-tile" href="https://www.humanbranddna.com/" target="_blank" rel="noopener">
+              <div class="tile-glow"></div>
+              <img class="service-logo" src="branding/humandna.png" alt="Human Brand DNA">
+              <span class="service-name">Sonic Branding</span>
+              <span class="service-url">humanbranddna.com &nearr;</span>
+            </a>
+
+            <a class="service-tile" href="https://www.humanlibrarian.com/" target="_blank" rel="noopener">
+              <div class="tile-glow"></div>
+              <img class="service-logo" src="branding/librarian.png" alt="Librarian">
+              <span class="service-name">Librarian</span>
+              <span class="service-url">humanlibrarian.com &nearr;</span>
+            </a>
+
+            <a class="service-tile" href="https://www.humanworldwide.com/label/" target="_blank" rel="noopener">
+              <div class="tile-glow"></div>
+              <img class="service-logo invert" src="branding/Human Label.png" alt="Human Label">
+              <span class="service-name">Human Label</span>
+              <span class="service-url">humanworldwide.com &nearr;</span>
+            </a>
+
+          </div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ════════════════════════════════════
-       SLIDE 6 — REVISIONS
-       ════════════════════════════════════ -->
-  <section class="slide" id="revisions">
-    <div class="slide-inner">
-      <div class="glass slide-card reveal">
-        <span class="slide-number">05</span>
-        <h2 class="slide-title-text">Revisions</h2>
-        <ul class="bullet-list">
-          <li>
-            <span class="bullet-dot"></span>
-            <div><strong style="color:var(--white)">Kill your darlings and iterate forward.</strong> Letting go of precious ideas to find the right answer.</div>
-          </li>
-          <li>
-            <span class="bullet-dot"></span>
-            <div><strong style="color:var(--white)">Evolution of understanding</strong> &mdash; navigating the agency &amp; client dichotomy.</div>
-          </li>
-          <li>
-            <span class="bullet-dot"></span>
-            <div><strong style="color:var(--white)">Scoring and refining</strong> &mdash; dialing in the emotion, timing, and feel.</div>
-          </li>
-          <li>
-            <span class="bullet-dot"></span>
-            <div><strong style="color:var(--white)">Options: a psychological tool</strong> &mdash; giving stakeholders the power to choose moves the process forward.</div>
-          </li>
-        </ul>
+    <!-- SLIDE 3 — OUR WORK -->
+    <section class="slide" data-index="3">
+      <div class="slide-inner">
+        <div class="glass slide-card">
+          <span class="slide-number">03</span>
+          <h2 class="slide-title-text">Our Work</h2>
+          <p class="text-secondary" style="margin-bottom: 8px;">A selection of projects across advertising, film, and digital media.</p>
+          <div class="work-grid">
+            <div class="work-placeholder">Project 1</div>
+            <div class="work-placeholder">Project 2</div>
+            <div class="work-placeholder">Project 3</div>
+            <div class="work-placeholder">Project 4</div>
+            <div class="work-placeholder">Project 5</div>
+            <div class="work-placeholder">Project 6</div>
+          </div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ════════════════════════════════════
-       SLIDE 7 — MUSICOLOGY
-       ════════════════════════════════════ -->
-  <section class="slide" id="musicology">
-    <div class="slide-inner">
-      <div class="glass slide-card reveal">
-        <span class="slide-number">06</span>
-        <h2 class="slide-title-text">Musicology</h2>
-        <ul class="bullet-list">
-          <li>
-            <span class="bullet-dot"></span>
-            <div><strong style="color:var(--white)">The Final Boss</strong> &mdash; the last hurdle before the music is locked.</div>
-          </li>
-          <li>
-            <span class="bullet-dot"></span>
-            <div><strong style="color:var(--white)">A stamp of approval</strong> &mdash; clearing rights, verifying originality, protecting the work.</div>
-          </li>
-          <li>
-            <span class="bullet-dot warn"></span>
-            <div><strong style="color:var(--warn)">The "Oh fuck&hellip;" moment</strong> &mdash; when musicology flags something and the clock is ticking.</div>
-          </li>
-        </ul>
+    <!-- SLIDE 4 — A MUSIC BRIEF -->
+    <section class="slide" data-index="4">
+      <div class="slide-inner">
+        <div class="glass slide-card">
+          <span class="slide-number">04</span>
+          <h2 class="slide-title-text">A Music Brief &mdash; Start to Finish</h2>
+          <ol class="step-list">
+            <li>
+              <span class="step-num">1</span>
+              <div>
+                <strong style="color:var(--white)">Initial Ideas</strong><br>
+                Needledrops, library tracks &mdash; establishing the sonic direction and reference points.
+              </div>
+            </li>
+            <li>
+              <span class="step-num">2</span>
+              <div>
+                <strong style="color:var(--white)">A Fully Fleshed Brief</strong><br>
+                Translating creative vision into a detailed music brief that guides composition.
+              </div>
+            </li>
+            <li>
+              <span class="step-num">3</span>
+              <div>
+                <strong style="color:var(--white)">Feedback Loop</strong><br>
+                Collaborative back-and-forth between composer, agency, and client.
+              </div>
+            </li>
+            <li>
+              <span class="step-num">4</span>
+              <div>
+                <strong style="color:var(--white)">Rd 2, Rd 3..?</strong><br>
+                Iterating through rounds until the music lands exactly where it needs to be.
+              </div>
+            </li>
+          </ol>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ════════════════════════════════════
-       SLIDE 8 — FILE MANAGEMENT
-       ════════════════════════════════════ -->
-  <section class="slide" id="file-mgmt">
-    <div class="slide-inner">
-      <div class="glass slide-card reveal">
-        <span class="slide-number">07</span>
-        <h2 class="slide-title-text">File Management</h2>
-        <ul class="bullet-list">
-          <li>
-            <span class="bullet-dot"></span>
-            <div><strong style="color:var(--white)">Title with purpose</strong> &mdash; naming conventions that make every file findable, every version traceable.</div>
-          </li>
-          <li>
-            <span class="bullet-dot"></span>
-            <div><strong style="color:var(--white)">Future proofing your creative work</strong> &mdash; organized assets today mean faster turnarounds tomorrow.</div>
-          </li>
-        </ul>
+    <!-- SLIDE 5 — REVISIONS -->
+    <section class="slide" data-index="5">
+      <div class="slide-inner">
+        <div class="glass slide-card">
+          <span class="slide-number">05</span>
+          <h2 class="slide-title-text">Revisions</h2>
+          <ul class="bullet-list">
+            <li>
+              <span class="bullet-dot"></span>
+              <div><strong style="color:var(--white)">Kill your darlings and iterate forward.</strong> Letting go of precious ideas to find the right answer.</div>
+            </li>
+            <li>
+              <span class="bullet-dot"></span>
+              <div><strong style="color:var(--white)">Evolution of understanding</strong> &mdash; navigating the agency &amp; client dichotomy.</div>
+            </li>
+            <li>
+              <span class="bullet-dot"></span>
+              <div><strong style="color:var(--white)">Scoring and refining</strong> &mdash; dialing in the emotion, timing, and feel.</div>
+            </li>
+            <li>
+              <span class="bullet-dot"></span>
+              <div><strong style="color:var(--white)">Options: a psychological tool</strong> &mdash; giving stakeholders the power to choose moves the process forward.</div>
+            </li>
+          </ul>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <!-- SLIDE 6 — MUSICOLOGY -->
+    <section class="slide" data-index="6">
+      <div class="slide-inner">
+        <div class="glass slide-card">
+          <span class="slide-number">06</span>
+          <h2 class="slide-title-text">Musicology</h2>
+          <ul class="bullet-list">
+            <li>
+              <span class="bullet-dot"></span>
+              <div><strong style="color:var(--white)">The Final Boss</strong> &mdash; the last hurdle before the music is locked.</div>
+            </li>
+            <li>
+              <span class="bullet-dot"></span>
+              <div><strong style="color:var(--white)">A stamp of approval</strong> &mdash; clearing rights, verifying originality, protecting the work.</div>
+            </li>
+            <li>
+              <span class="bullet-dot warn"></span>
+              <div><strong style="color:var(--warn)">The "Oh fuck&hellip;" moment</strong> &mdash; when musicology flags something and the clock is ticking.</div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7 — FILE MANAGEMENT -->
+    <section class="slide" data-index="7">
+      <div class="slide-inner">
+        <div class="glass slide-card">
+          <span class="slide-number">07</span>
+          <h2 class="slide-title-text">File Management</h2>
+          <ul class="bullet-list">
+            <li>
+              <span class="bullet-dot"></span>
+              <div><strong style="color:var(--white)">Title with purpose</strong> &mdash; naming conventions that make every file findable, every version traceable.</div>
+            </li>
+            <li>
+              <span class="bullet-dot"></span>
+              <div><strong style="color:var(--white)">Future proofing your creative work</strong> &mdash; organized assets today mean faster turnarounds tomorrow.</div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
 
   <!-- ════════════════════════════════════
-       SCRIPTS
+       SLIDE ENGINE
        ════════════════════════════════════ -->
   <script>
-    // ─── Scroll progress bar ───
-    const progressBar = document.getElementById('scrollProgress');
-    function updateProgress() {
-      const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const percent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-      progressBar.style.width = percent + '%';
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    let current = 0;
+    let transitioning = false;
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const progressBar = document.getElementById('progressBar');
+    const pageIndicator = document.getElementById('pageIndicator');
+    const topNavLinks = document.querySelectorAll('#topNav a[data-slide]');
+    const mobileNavLinks = document.querySelectorAll('#mobileNav a[data-slide]');
+
+    // Build page indicator dots
+    for (let i = 0; i < totalSlides; i++) {
+      const dot = document.createElement('button');
+      dot.className = 'page-dot' + (i === 0 ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+      dot.addEventListener('click', () => goTo(i));
+      pageIndicator.appendChild(dot);
     }
-    window.addEventListener('scroll', updateProgress, { passive: true });
 
-    // ─── Scroll-triggered reveal ───
-    const reveals = document.querySelectorAll('.reveal');
-    const revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) entry.target.classList.add('visible');
+    const pageDots = pageIndicator.querySelectorAll('.page-dot');
+
+    function updateUI() {
+      // Progress bar
+      progressBar.style.width = ((current + 1) / totalSlides * 100) + '%';
+
+      // Page dots
+      pageDots.forEach((d, i) => d.classList.toggle('active', i === current));
+
+      // Nav arrows
+      prevBtn.classList.toggle('disabled', current === 0);
+      nextBtn.classList.toggle('disabled', current === totalSlides - 1);
+
+      // Top nav
+      topNavLinks.forEach(a => {
+        a.classList.toggle('active', parseInt(a.dataset.slide) === current);
       });
-    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-    reveals.forEach(el => revealObserver.observe(el));
 
-    // ─── Active nav highlight ───
-    const sections = document.querySelectorAll('.slide[id]');
-    const navLinks = document.querySelectorAll('.topbar-nav a');
-    const mobileNavLinks = document.querySelectorAll('.mobile-nav a');
-
-    const navObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const id = entry.target.getAttribute('id');
-          navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
-          mobileNavLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
-        }
+      // Mobile nav
+      mobileNavLinks.forEach(a => {
+        a.classList.toggle('active', parseInt(a.dataset.slide) === current);
       });
-    }, { threshold: 0.35 });
-    sections.forEach(s => navObserver.observe(s));
+    }
 
-    // ─── Keyboard navigation ───
+    function goTo(index, direction) {
+      if (index === current || index < 0 || index >= totalSlides || transitioning) return;
+      transitioning = true;
+
+      const dir = direction || (index > current ? 'left' : 'right');
+      const oldSlide = slides[current];
+      const newSlide = slides[index];
+
+      // Exit old
+      oldSlide.classList.remove('active');
+      oldSlide.classList.add(dir === 'left' ? 'exiting-left' : 'exiting-right');
+
+      // Prepare new slide entry direction
+      newSlide.style.transition = 'none';
+      newSlide.style.transform = dir === 'left' ? 'translateX(60px)' : 'translateX(-60px)';
+      newSlide.style.opacity = '0';
+
+      // Force reflow
+      newSlide.offsetHeight;
+
+      // Animate in
+      newSlide.style.transition = '';
+      newSlide.classList.add('active');
+      newSlide.style.transform = '';
+      newSlide.style.opacity = '';
+
+      current = index;
+      updateUI();
+
+      setTimeout(() => {
+        oldSlide.classList.remove('exiting-left', 'exiting-right');
+        transitioning = false;
+      }, 500);
+    }
+
+    function next() { goTo(current + 1, 'left'); }
+    function prev() { goTo(current - 1, 'right'); }
+
+    // Arrow buttons
+    prevBtn.addEventListener('click', prev);
+    nextBtn.addEventListener('click', next);
+
+    // Keyboard
     document.addEventListener('keydown', (e) => {
-      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-      e.preventDefault();
-      const ids = [...sections].map(s => s.id);
-      const current = [...sections].findIndex(s => {
-        const rect = s.getBoundingClientRect();
-        return rect.top >= -100 && rect.top < window.innerHeight / 2;
-      });
-      const dir = (e.key === 'ArrowDown' || e.key === 'ArrowRight') ? 1 : -1;
-      const next = Math.max(0, Math.min(current + dir, ids.length - 1));
-      document.getElementById(ids[next]).scrollIntoView({ behavior: 'smooth' });
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); next(); }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); }
     });
 
-    // ─── Mobile menu ───
+    // Nav links
+    topNavLinks.forEach(a => {
+      a.addEventListener('click', () => goTo(parseInt(a.dataset.slide)));
+    });
+
+    mobileNavLinks.forEach(a => {
+      a.addEventListener('click', () => {
+        closeMenu();
+        goTo(parseInt(a.dataset.slide));
+      });
+    });
+
+    // Touch / swipe support
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    document.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+
+      // Only swipe if horizontal movement is dominant
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+        if (dx < 0) next();
+        else prev();
+      }
+    }, { passive: true });
+
+    // Mobile menu
     const menuBtn = document.getElementById('menuBtn');
     const mobileNav = document.getElementById('mobileNav');
     const navOverlay = document.getElementById('navOverlay');
@@ -1364,32 +1493,19 @@
     function openMenu() {
       mobileNav.classList.add('open');
       navOverlay.classList.add('open');
-      document.body.style.overflow = 'hidden';
     }
 
     function closeMenu() {
       mobileNav.classList.remove('open');
       navOverlay.classList.remove('open');
-      document.body.style.overflow = '';
     }
 
     menuBtn.addEventListener('click', openMenu);
     navClose.addEventListener('click', closeMenu);
     navOverlay.addEventListener('click', closeMenu);
-    mobileNavLinks.forEach(a => a.addEventListener('click', closeMenu));
 
-    // ─── Hide scroll hint after first scroll ───
-    const scrollHint = document.querySelector('.scroll-hint');
-    if (scrollHint) {
-      let hidden = false;
-      window.addEventListener('scroll', () => {
-        if (!hidden && window.scrollY > 80) {
-          scrollHint.style.opacity = '0';
-          scrollHint.style.transition = 'opacity .4s ease';
-          hidden = true;
-        }
-      }, { passive: true });
-    }
+    // Init
+    updateUI();
   </script>
 
 </body>
