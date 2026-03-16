@@ -1,4 +1,4 @@
-name: Sync to main & deploy Pages
+name: Sync to main
 
 on:
   push:
@@ -7,12 +7,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
-
-concurrency:
-  group: deploy
-  cancel-in-progress: true
 
 jobs:
   sync-to-main:
@@ -24,29 +18,4 @@ jobs:
           fetch-depth: 0
 
       - name: Push to main
-        run: |
-          git push origin HEAD:refs/heads/main --force
-
-  deploy-pages:
-    needs: sync-to-main
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
-        with:
-          ref: main
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        run: git push origin HEAD:refs/heads/main --force
