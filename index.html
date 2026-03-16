@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Human Worldwide</title>
+  <style>
+    /* ═══════════════════════════════════════
+       TOKENS
+       ═══════════════════════════════════════ */
+    :root {
+      /* Background */
+      --body-bg: #0d1117;
+      --grey-1: #121317;
+      /* Glass surfaces */
+      --glass: rgba(255,255,255,0.05);
+      --glass-border: rgba(255,255,255,0.10);
+      /* Text */
+      --white: #FFFFFF;
+      --grey-7: #D0D0D0;
+      --grey-6: #8A9099;
+      --grey-5: #6B7280;
+      --white-52: rgba(255,255,255,0.52);
+      /* Accent (Teal) */
+      --accent: #28E6D0;
+      --accent-grad: #27E6B8;
+      --accent-text: #16BEAB;
+      --accent-dim: rgba(40,230,208,0.12);
+      /* Semantic */
+      --danger: #FF6B6B;
+      --danger-dim: rgba(255,107,107,0.12);
+      --warn: #FFC83C;
+      --warn-dim: rgba(255,200,60,0.12);
+      /* Borders */
+      --border-light: rgba(255,255,255,0.08);
+      --border-row: rgba(255,255,255,0.04);
+      /* Radius */
+      --radius: 16px;
+      --radius-sm: 10px;
+      --radius-pill: 100px;
+      /* Shadows */
+      --shadow-xl: 0 20px 60px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
+      /* Motion */
+      --ease: cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ═══════════════════════════════════════
+       RESET & BASE
+       ═══════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-snap-type: y mandatory;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+      font-size: 14px;
+      background: var(--body-bg);
+      color: var(--grey-7);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    ::selection {
+      background: rgba(40,230,208,0.3);
+      color: var(--white);
+    }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.08);
+      border-radius: 4px;
+      border: 2px solid transparent;
+      background-clip: content-box;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255,255,255,0.16);
+      border: 2px solid transparent;
+      background-clip: content-box;
+    }
+
+    /* ═══════════════════════════════════════
+       SLIDE LAYOUT
+       ═══════════════════════════════════════ */
+    .slide {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 48px;
+      scroll-snap-align: start;
+      position: relative;
+    }
+
+    .slide-inner {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    /* ═══════════════════════════════════════
+       GLASS PANELS
+       ═══════════════════════════════════════ */
+    .glass {
+      position: relative;
+      background: rgba(255,255,255, 0.04);
+      backdrop-filter: blur(28px) saturate(1.4);
+      -webkit-backdrop-filter: blur(28px) saturate(1.4);
+      border: 1px solid rgba(255,255,255, 0.09);
+      border-radius: var(--radius);
+      box-shadow:
+        0 4px 24px rgba(0,0,0, 0.2),
+        inset 0 1px 0 rgba(255,255,255, 0.06);
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .glass::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 5%, rgba(255,255,255,.18) 50%, transparent 95%);
+      border-radius: var(--radius) var(--radius) 0 0;
+      pointer-events: none;
+    }
+
+    .glass:hover {
+      border-color: rgba(255,255,255, 0.15);
+      box-shadow:
+        0 4px 32px rgba(0,0,0, 0.25),
+        inset 0 1px 0 rgba(255,255,255, 0.08);
+    }
+
+    /* ═══════════════════════════════════════
+       TOPBAR / NAV
+       ═══════════════════════════════════════ */
+    .topbar {
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255, 0.06);
+      background: rgba(13,17,23, 0.5);
+      backdrop-filter: blur(32px) saturate(1.3);
+      -webkit-backdrop-filter: blur(32px) saturate(1.3);
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      box-shadow: 0 1px 0 rgba(255,255,255, 0.04);
+    }
+
+    .topbar-logo {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .topbar-logo img {
+      height: 20px;
+      width: auto;
+    }
+
+    .topbar-nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: auto;
+      list-style: none;
+    }
+
+    .topbar-nav a {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--grey-6);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      transition: all .15s ease;
+    }
+
+    .topbar-nav a:hover {
+      color: var(--white);
+      background: rgba(255,255,255, 0.06);
+    }
+
+    .topbar-nav a.active {
+      color: var(--accent-text);
+      background: var(--accent-dim);
+    }
+
+    /* ═══════════════════════════════════════
+       TYPOGRAPHY
+       ═══════════════════════════════════════ */
+    .heading-xl {
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -1px;
+      line-height: 1.1;
+    }
+
+    .heading-lg {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.3px;
+    }
+
+    .heading-md {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.2px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .text-body {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--grey-7);
+      line-height: 1.7;
+    }
+
+    .text-secondary {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--grey-6);
+      line-height: 1.6;
+    }
+
+    .label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--grey-5);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    /* ═══════════════════════════════════════
+       SLIDE-SPECIFIC
+       ═══════════════════════════════════════ */
+
+    /* --- Slide 1: Title --- */
+    .slide-title {
+      text-align: center;
+      flex-direction: column;
+    }
+
+    .slide-title .logo-placeholder {
+      width: 160px;
+      height: 160px;
+      border-radius: 24px;
+      background: rgba(255,255,255, 0.03);
+      border: 1px dashed rgba(255,255,255, 0.10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 40px;
+      overflow: hidden;
+    }
+
+    .slide-title .logo-placeholder img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .slide-title .logo-placeholder span {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--grey-5);
+    }
+
+    .slide-title .heading-xl {
+      margin-bottom: 16px;
+    }
+
+    .slide-title .subtitle {
+      font-size: 15px;
+      color: var(--grey-6);
+      font-weight: 500;
+    }
+
+    /* --- Content slide cards --- */
+    .slide-card {
+      padding: 48px;
+    }
+
+    .slide-card .slide-number {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent-text);
+      background: var(--accent-dim);
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 24px;
+    }
+
+    .slide-card .slide-title-text {
+      font-size: clamp(24px, 3.5vw, 36px);
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.5px;
+      margin-bottom: 32px;
+      line-height: 1.2;
+    }
+
+    .slide-card p {
+      font-size: 14px;
+      color: var(--grey-7);
+      line-height: 1.75;
+      margin-bottom: 16px;
+    }
+
+    .slide-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* --- Bullet list --- */
+    .bullet-list {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .bullet-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      font-size: 14px;
+      color: var(--grey-7);
+      line-height: 1.7;
+    }
+
+    .bullet-list li::before {
+      content: '';
+      flex-shrink: 0;
+      width: 6px;
+      height: 6px;
+      margin-top: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    /* --- Numbered steps --- */
+    .step-list {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .step-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      font-size: 14px;
+      color: var(--grey-7);
+      line-height: 1.7;
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      color: var(--accent-text);
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* --- Service grid (What We Do) --- */
+    .service-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .service-tile {
+      position: relative;
+      background: rgba(255,255,255, 0.03);
+      border: 1px solid rgba(255,255,255, 0.06);
+      border-radius: 14px;
+      padding: 28px 24px;
+      text-align: center;
+      transition: all .25s var(--ease);
+      cursor: default;
+    }
+
+    .service-tile::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 10%, rgba(255,255,255,.10) 50%, transparent 90%);
+      border-radius: 14px 14px 0 0;
+      pointer-events: none;
+    }
+
+    .service-tile:hover {
+      border-color: rgba(40,230,208, 0.2);
+      background: rgba(40,230,208, 0.04);
+      transform: translateY(-2px);
+    }
+
+    .service-tile .service-icon {
+      font-size: 28px;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .service-tile .service-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: -0.1px;
+    }
+
+    /* --- "Our Work" decorative grid --- */
+    .work-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .work-placeholder {
+      aspect-ratio: 16/9;
+      background: rgba(255,255,255, 0.03);
+      border: 1px solid rgba(255,255,255, 0.06);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--grey-5);
+      font-weight: 500;
+      transition: all .25s var(--ease);
+    }
+
+    .work-placeholder:hover {
+      border-color: rgba(255,255,255, 0.12);
+      background: rgba(255,255,255, 0.05);
+    }
+
+    /* --- Divider --- */
+    .divider {
+      height: 1px;
+      background: var(--border-light);
+      margin: 28px 0;
+    }
+
+    /* --- Accent text highlight --- */
+    .accent {
+      color: var(--accent-text);
+    }
+
+    .warn-text {
+      color: var(--warn);
+    }
+
+    /* ═══════════════════════════════════════
+       ANIMATIONS
+       ═══════════════════════════════════════ */
+    @keyframes fadeInUp   { from { opacity:0; transform:translateY(24px) } to { opacity:1; transform:translateY(0) } }
+    @keyframes fadeIn     { from { opacity:0 } to { opacity:1 } }
+    @keyframes fadeInRow  { from { opacity:0; transform:translateY(4px) } to { opacity:1; transform:translateY(0) } }
+    @keyframes float      { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-10px) } }
+
+    .anim-up    { animation: fadeInUp .5s var(--ease) both }
+    .anim-row   { animation: fadeInRow .3s var(--ease) both }
+
+    .d1  { animation-delay: .04s }
+    .d2  { animation-delay: .08s }
+    .d3  { animation-delay: .12s }
+    .d4  { animation-delay: .16s }
+    .d5  { animation-delay: .20s }
+    .d6  { animation-delay: .24s }
+    .d7  { animation-delay: .28s }
+    .d8  { animation-delay: .32s }
+    .d9  { animation-delay: .36s }
+    .d10 { animation-delay: .40s }
+    .d11 { animation-delay: .44s }
+    .d12 { animation-delay: .48s }
+
+    /* Scroll-triggered visibility */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .6s var(--ease), transform .6s var(--ease);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ═══════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════ */
+    @media (max-width: 640px) {
+      .slide { padding: 40px 20px; }
+      .slide-card { padding: 32px 24px; }
+      .service-grid { grid-template-columns: repeat(2, 1fr); }
+      .work-grid { grid-template-columns: repeat(2, 1fr); }
+      .topbar-nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════════════════════════════
+       TOPBAR
+       ════════════════════════════════════ -->
+  <nav class="topbar">
+    <div class="topbar-logo">
+      <!-- Replace with actual logo: <img src="branding/logo.svg" alt="Human Worldwide"> -->
+      Human Worldwide
+    </div>
+    <ul class="topbar-nav">
+      <li><a href="#title" class="active">Home</a></li>
+      <li><a href="#who-we-are">Who We Are</a></li>
+      <li><a href="#what-we-do">What We Do</a></li>
+      <li><a href="#our-work">Our Work</a></li>
+      <li><a href="#music-brief">Brief</a></li>
+      <li><a href="#revisions">Revisions</a></li>
+      <li><a href="#musicology">Musicology</a></li>
+      <li><a href="#file-mgmt">Files</a></li>
+    </ul>
+  </nav>
+
+  <!-- ════════════════════════════════════
+       SLIDE 1 — TITLE
+       ════════════════════════════════════ -->
+  <section class="slide slide-title" id="title">
+    <div class="slide-inner" style="text-align:center;">
+      <div class="logo-placeholder anim-up">
+        <!-- Drop your logo into branding/ and update the src below -->
+        <img src="branding/logo.png" alt="Human Worldwide Logo"
+             onerror="this.style.display='none'; this.parentElement.querySelector('span').style.display='block';">
+        <span style="display:none;">Drop logo in<br>branding/</span>
+      </div>
+      <h1 class="heading-xl anim-up d2">Human Worldwide</h1>
+      <p class="subtitle anim-up d4">Music &middot; Sound &middot; Story</p>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════
+       SLIDE 2 — WHO WE ARE
+       ════════════════════════════════════ -->
+  <section class="slide" id="who-we-are">
+    <div class="slide-inner">
+      <div class="glass slide-card reveal">
+        <span class="slide-number">01</span>
+        <h2 class="slide-title-text">Who We Are</h2>
+        <p>
+          Founded by composers in service of the world's biggest brands, Human has always championed music's ability to inspire and provoke emotion. Human has crafted soundtracks for stories told across advertising, broadcast, film, and digital media, with services ranging from composition to sound design, and from supervision to audio post with our newly minted sister company, <span class="accent">Post Human</span>.
+        </p>
+        <p>
+          Human hosts offices in <span class="accent">New York</span>, <span class="accent">Los Angeles</span>, <span class="accent">Chicago</span> and <span class="accent">Paris</span>, providing the facilities, bandwidth, and flexibility to serve as the ideal music and audio partner for clients and collaborators. Our artistic approach is reflected in everything we do, embracing the intertwining of tangible and intangible qualities that make music a powerful tool in transformative commercial and experiential storytelling.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════
+       SLIDE 3 — WHAT WE DO
+       ════════════════════════════════════ -->
+  <section class="slide" id="what-we-do">
+    <div class="slide-inner">
+      <div class="glass slide-card reveal">
+        <span class="slide-number">02</span>
+        <h2 class="slide-title-text">What We Do</h2>
+        <div class="service-grid">
+          <div class="service-tile">
+            <span class="service-icon">&#9835;</span>
+            <span class="service-name">Original Music</span>
+          </div>
+          <div class="service-tile">
+            <span class="service-icon">&#9834;</span>
+            <span class="service-name">Music Supervision</span>
+          </div>
+          <div class="service-tile">
+            <span class="service-icon">&#127908;</span>
+            <span class="service-name">Post Human</span>
+          </div>
+          <div class="service-tile">
+            <span class="service-icon">&#128266;</span>
+            <span class="service-name">Sonic Branding</span>
+          </div>
+          <div class="service-tile">
+            <span class="service-icon">&#128218;</span>
+            <span class="service-name">Librarian</span>
+          </div>
+          <div class="service-tile">
+            <span class="service-icon">&#127926;</span>
+            <span class="service-name">Human Label</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════
+       SLIDE 4 — OUR WORK
+       ════════════════════════════════════ -->
+  <section class="slide" id="our-work">
+    <div class="slide-inner">
+      <div class="glass slide-card reveal">
+        <span class="slide-number">03</span>
+        <h2 class="slide-title-text">Our Work</h2>
+        <p class="text-secondary" style="margin-bottom: 8px;">A selection of projects across advertising, film, and digital media.</p>
+        <div class="work-grid">
+          <div class="work-placeholder">Project 1</div>
+          <div class="work-placeholder">Project 2</div>
+          <div class="work-placeholder">Project 3</div>
+          <div class="work-placeholder">Project 4</div>
+          <div class="work-placeholder">Project 5</div>
+          <div class="work-placeholder">Project 6</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════
+       SLIDE 5 — A MUSIC BRIEF
+       ════════════════════════════════════ -->
+  <section class="slide" id="music-brief">
+    <div class="slide-inner">
+      <div class="glass slide-card reveal">
+        <span class="slide-number">04</span>
+        <h2 class="slide-title-text">A Music Brief &mdash; Start to Finish</h2>
+        <ol class="step-list">
+          <li>
+            <span class="step-num">1</span>
+            <div>
+              <strong style="color:var(--white)">Initial Ideas</strong><br>
+              Needledrops, library tracks &mdash; establishing the sonic direction and reference points.
+            </div>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <div>
+              <strong style="color:var(--white)">A Fully Fleshed Brief</strong><br>
+              Translating creative vision into a detailed music brief that guides composition.
+            </div>
+          </li>
+          <li>
+            <span class="step-num">3</span>
+            <div>
+              <strong style="color:var(--white)">Feedback Loop</strong><br>
+              Collaborative back-and-forth between composer, agency, and client.
+            </div>
+          </li>
+          <li>
+            <span class="step-num">4</span>
+            <div>
+              <strong style="color:var(--white)">Rd 2, Rd 3..?</strong><br>
+              Iterating through rounds until the music lands exactly where it needs to be.
+            </div>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════
+       SLIDE 6 — REVISIONS
+       ════════════════════════════════════ -->
+  <section class="slide" id="revisions">
+    <div class="slide-inner">
+      <div class="glass slide-card reveal">
+        <span class="slide-number">05</span>
+        <h2 class="slide-title-text">Revisions</h2>
+        <ul class="bullet-list">
+          <li><strong style="color:var(--white)">Kill your darlings and iterate forward.</strong> Letting go of precious ideas to find the right answer.</li>
+          <li><strong style="color:var(--white)">Evolution of understanding</strong> &mdash; navigating the agency &amp; client dichotomy.</li>
+          <li><strong style="color:var(--white)">Scoring and refining</strong> &mdash; dialing in the emotion, timing, and feel.</li>
+          <li><strong style="color:var(--white)">Options: a psychological tool</strong> &mdash; giving stakeholders the power to choose moves the process forward.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════
+       SLIDE 7 — MUSICOLOGY
+       ════════════════════════════════════ -->
+  <section class="slide" id="musicology">
+    <div class="slide-inner">
+      <div class="glass slide-card reveal">
+        <span class="slide-number">06</span>
+        <h2 class="slide-title-text">Musicology</h2>
+        <ul class="bullet-list">
+          <li><strong style="color:var(--white)">The Final Boss</strong> &mdash; the last hurdle before the music is locked.</li>
+          <li><strong style="color:var(--white)">A stamp of approval</strong> &mdash; clearing rights, verifying originality, protecting the work.</li>
+          <li><strong style="color:var(--warn)">The "Oh fuck&hellip;" moment</strong> &mdash; when musicology flags something and the clock is ticking.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════
+       SLIDE 8 — FILE MANAGEMENT
+       ════════════════════════════════════ -->
+  <section class="slide" id="file-mgmt">
+    <div class="slide-inner">
+      <div class="glass slide-card reveal">
+        <span class="slide-number">07</span>
+        <h2 class="slide-title-text">File Management</h2>
+        <ul class="bullet-list">
+          <li><strong style="color:var(--white)">Title with purpose</strong> &mdash; naming conventions that make every file findable, every version traceable.</li>
+          <li><strong style="color:var(--white)">Future proofing your creative work</strong> &mdash; organized assets today mean faster turnarounds tomorrow.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════
+       SCROLL-REVEAL + NAV HIGHLIGHT
+       ════════════════════════════════════ -->
+  <script>
+    // Intersection Observer: reveal cards on scroll
+    const reveals = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.15 });
+    reveals.forEach(el => revealObserver.observe(el));
+
+    // Highlight active nav link on scroll
+    const sections = document.querySelectorAll('.slide[id]');
+    const navLinks = document.querySelectorAll('.topbar-nav a');
+
+    const navObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.getAttribute('id');
+          const link = document.querySelector(`.topbar-nav a[href="#${id}"]`);
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { threshold: 0.5 });
+    sections.forEach(s => navObserver.observe(s));
+
+    // Keyboard navigation: arrow keys to move between slides
+    document.addEventListener('keydown', (e) => {
+      const ids = [...sections].map(s => s.id);
+      const current = [...sections].findIndex(s => {
+        const rect = s.getBoundingClientRect();
+        return rect.top >= -100 && rect.top < window.innerHeight / 2;
+      });
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        const next = Math.min(current + 1, ids.length - 1);
+        document.getElementById(ids[next]).scrollIntoView({ behavior: 'smooth' });
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const prev = Math.max(current - 1, 0);
+        document.getElementById(ids[prev]).scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  </script>
+
+</body>
+</html>
